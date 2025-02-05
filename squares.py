@@ -5,13 +5,13 @@ import random
 
 # Constants
 WIDTH = 800
-SQUARE_SIZE = 40
-ROWS = 20
-COLS = 20
+SQUARE_SIZE = 20
+ROWS = 40
+COLS = 40
 SLEEP_TIME = 0.001 
 
-MIN_BLOCKS = 80    
-MAX_BLOCKS = 100
+MIN_BLOCKS = 400    
+MAX_BLOCKS = 500
 
 
 # Colors
