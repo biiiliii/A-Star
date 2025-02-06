@@ -1,6 +1,6 @@
 ## A* Pathfinding Algorithm Visualization 🗺️
 
-This Python program visualizes the A* pathfinding algorithm using Pygame. It generates a grid with random obstacles and finds the shortest path between a starting point and an end point.
+This Python program visualizes the A* pathfinding algorithm using Pygame. It includes different visualizations such as a grid with random obstacles, hexagonal grids, and a snake game pathfinding.
 
 ### Requirements
 
@@ -10,12 +10,17 @@ This Python program visualizes the A* pathfinding algorithm using Pygame. It gen
 ### How to Run
 
 1. Make sure you have Pygame installed (`pip install pygame`).
-2. Save the code as a Python file (e.g., `a_star.py`).
-3. Run the file from your terminal: `python a_star.py`
+2. Save the code as a Python file (e.g., `a_star.py`, `hexagons.py`, or `snake_astar.py`).
+3. Run the desired file from your terminal:
+    * For grid visualization: `python a_star.py`
+    * For hexagonal grid visualization: `python hexagons.py`
+    * For snake game pathfinding: `python snake_astar.py`
 
 ### How it Works
 
 * **Grid:** The program creates a grid of squares. ⬜
+* **Hexagonal Grid:** The program creates a grid of hexagons for pathfinding.
+* **Snake Game:** The program uses A* to find the path for a snake in a grid.
 * **Obstacles:** Random cells are blocked to represent obstacles. 🧱
 * **A\* Algorithm:** The A* search algorithm is used to find the shortest path from the start to the end point.
     * **Heuristic:** Manhattan distance is used as the heuristic function to estimate the distance to the end.
