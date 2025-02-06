@@ -162,6 +162,56 @@ class SnakeGame:
         obstacles = set(self.snake[1:])
         return astar_search(self.snake[0], self.apple, obstacles, self.visualize)
 
+        # Inside the SnakeGame class
+
+    def is_safe(self, cell):
+        x, y = cell
+        # Check boundaries.
+        if not (1 <= x < GRID_WIDTH and 1 <= y < GRID_HEIGHT):
+            return False
+        # In a normal move the tail is removed, so we allow the tail cell.
+        # Thus, obstacles are all snake segments except the tail.
+        obstacles = set(self.snake[:-1])
+        return cell not in obstacles
+
+    def compute_reachable_area(self, start, obstacles):
+        """Returns the number of cells reachable from 'start' given a set of obstacles."""
+        visited = set()
+        queue = [start]
+        area = 0
+        while queue:
+            cell = queue.pop(0)
+            if cell in visited:
+                continue
+            visited.add(cell)
+            area += 1
+            for neighbor in neighbors(cell):
+                if neighbor in visited:
+                    continue
+                # If the neighbor is not blocked and is within the grid.
+                if neighbor in obstacles:
+                    continue
+                queue.append(neighbor)
+        return area
+
+    def fallback_move(self):
+        """Choose the safe move (among neighbors) that maximizes reachable area."""
+        head = self.snake[0]
+        candidates = []
+        for d in [(0, -1), (0, 1), (-1, 0), (1, 0)]:
+            new_head = (head[0] + d[0], head[1] + d[1])
+            if self.is_safe(new_head):
+                # Simulate next state: new snake = [new_head] + snake[:-1]
+                simulated_snake = [new_head] + self.snake[:-1]
+                obstacles = set(simulated_snake)
+                area = self.compute_reachable_area(new_head, obstacles)
+                candidates.append((area, new_head))
+        if not candidates:
+            return None
+        # Choose the move with maximum reachable area.
+        best_area, best_move = max(candidates, key=lambda x: x[0])
+        return best_move
+
     def update(self):
         # Process quit events.
         for event in pygame.event.get():
@@ -170,15 +220,20 @@ class SnakeGame:
                 sys.exit()
 
         if self.mode == "compute":
-            # Step one iteration of A* for visualization.
             try:
                 self.astar_state = next(self.astar_generator)
                 if self.astar_state.get("done"):
-                    # A* finished—if a path was found, use it.
+                    # A* finished—check if a path was found.
                     if self.astar_state.get("path") is None:
-                        print("No path found!")
+                        print("No path to apple found! Using space-optimizing fallback move.")
+                        fallback = self.fallback_move()
+                        if fallback is not None:
+                            # Fallback: use the chosen move as a one-step path.
+                            self.path = [fallback]
+                        else:
+                            # If no safe move is found, simply do nothing.
+                            self.path = []
                         self.mode = "move"
-                        self.path = []
                     else:
                         full_path = self.astar_state["path"]
                         # Remove the first cell (current head) from the planned path.
@@ -188,14 +243,12 @@ class SnakeGame:
                 self.mode = "move"
 
         elif self.mode == "move":
-            # Follow the computed path one step at a time.
+            # Follow the computed path (or fallback move) one step at a time.
             if self.path and len(self.path) > 0:
                 next_cell = self.path.pop(0)
-                # Check if the next move leads to the apple.
                 if next_cell == self.apple:
-                    # Grow: add new head, but do not remove tail.
+                    # Grow: add new head and keep tail.
                     self.snake.insert(0, next_cell)
-                    # Place new apple and recompute path.
                     self.apple = self.random_apple()
                     self.mode = "compute"
                     self.astar_generator = self.create_astar_generator()
@@ -206,11 +259,12 @@ class SnakeGame:
                     self.snake.insert(0, next_cell)
                     self.snake.pop()
             else:
-                # If there is no valid path (or the computed path is empty), replan.
+                # No valid path (or finished path) – replan.
                 self.mode = "compute"
                 self.astar_generator = self.create_astar_generator()
                 self.astar_state = None
                 self.path = None
+
 
     def draw_grid(self):
         for x in range(0, WINDOW_WIDTH, CELL_SIZE):
