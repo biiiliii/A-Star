@@ -15,6 +15,7 @@ This Python program visualizes the A* pathfinding algorithm using Pygame. It inc
     * For grid visualization: `python a_star.py`
     * For hexagonal grid visualization: `python hexagons.py`
     * For snake game pathfinding: `python snake_astar.py`
+    * For procedural maze generation and then making it compete against A* `python procedural_maze_gen.py`
 
 ### How it Works
 

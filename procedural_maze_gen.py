@@ -4,12 +4,16 @@ import pygame
 from time import sleep
 import random
 
+MAZE_GEN_TYPE = 0
+# 0 for Backtracking
+# 1 for Heapq
+
 # Constants
 WIDTH = 800               # Amplada de la finestra
-SQUARE_SIZE = 20          # Mida de cada quadrat
-ROWS = 40                 # Nombre de files
-COLS = 40                 # Nombre de columnes
-SLEEP_TIME = 0.0001        # Retard per la visualització
+SQUARE_SIZE = 20         # Mida de cada quadrat
+ROWS = WIDTH // SQUARE_SIZE                 # Nombre de files
+COLS = WIDTH // SQUARE_SIZE                 # Nombre de columnes
+SLEEP_TIME = 0.000        # Retard per la visualització
 
 MIN_BLOCKS = 400          # Mínim de cel·les bloquejades
 MAX_BLOCKS = 500          # Màxim de cel·les bloquejades
@@ -134,6 +138,45 @@ def gen_procedural_maze(start):
             visited.add((nx, ny))
     return maze
 
+def gen_procedural_maze_backtracking(start):
+    maze = grid_maze()  
+    stack = []
+    x, y = start
+    maze[x][y].visited = True
+    maze[x][y].wall = False
+    stack.append((x, y))
+    
+    while stack:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                return
+        x, y = stack[-1]
+        neighbors = []
+        for dx, dy in [(2, 0), (-2, 0), (0, 2), (0, -2)]:
+            nx, ny = x + dx, y + dy
+            if nx < 0 or nx >= COLS or ny < 0 or ny >= ROWS:
+                continue
+            if not maze[nx][ny].visited:
+                neighbors.append((nx, ny))
+        if neighbors:
+            nx, ny = random.choice(neighbors)
+            mid_x = (x + nx) // 2
+            mid_y = (y + ny) // 2
+            maze[mid_x][mid_y].wall = False
+            maze[nx][ny].visited = True
+            maze[nx][ny].wall = False
+            stack.append((nx, ny))
+            draw_maze(maze, [])
+            sleep(SLEEP_TIME)
+        else:
+            stack.pop()
+            draw_maze(maze, [])
+            sleep(SLEEP_TIME)
+    
+    return maze
+
+
 def calculate_heuristic(x, y, end):
     # Distància Manhattan
     return abs(end[0] - x) + abs(end[1] - y)
@@ -196,7 +239,11 @@ def a_star(maze, start, end):
     
     start = (0, 0)
     end = (COLS - 2, ROWS - 2)
-    maze = gen_procedural_maze(start)
+    match MAZE_GEN_TYPE:
+        case 0:
+            maze = gen_procedural_maze_backtracking(start)
+        case 1:
+            maze = gen_procedural_maze(start)
     a_star(maze, start, end)
 
 def main():
@@ -207,9 +254,12 @@ def main():
     
     
     start = (0, 0)
-    maze = gen_procedural_maze(start)
+    match MAZE_GEN_TYPE:
+        case 0:
+            maze = gen_procedural_maze_backtracking(start)
+        case 1:
+            maze = gen_procedural_maze(start)
     end = (COLS - 2, ROWS - 2)
-    # add_random_walls(maze, start, end)
     a_star(maze, start, end)
 
     # Espera que l'usuari tanqui la finestra
